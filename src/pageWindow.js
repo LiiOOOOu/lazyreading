@@ -77,6 +77,67 @@ function fitUtf8Prefix(bytes, pageBytes) {
   return end;
 }
 
+function takePageMarks(bytes, pageBytes, atEof) {
+  // 页尾后留 4 个字节，才能看清下一个汉字有没有被这块读操作截断
+  const marks = [];
+  let local = 0;
+  while (local < bytes.length) {
+    const size = fitUtf8Prefix(bytes.subarray(local), pageBytes);
+    if (size <= 0) {
+      break;
+    }
+    if (!atEof && local + size + 4 > bytes.length) {
+      break;
+    }
+    local += size;
+    marks.push(local);
+  }
+  return { consumed: local, marks };
+}
+
+function extendPageMarks(marks, read, fileSize, page, target, chunkSize = 1024 * 1024) {
+  const origin = marks.length ? marks[0] : 0;
+  const goal = Math.max(origin, Math.min(target, fileSize));
+  let cursor = marks[marks.length - 1];
+  let span = Math.max(1, chunkSize | 0);
+  const baseSpan = span;
+  while (cursor < goal && cursor < fileSize) {
+    const atEof = cursor + span >= fileSize;
+    const length = Math.min(span, fileSize - cursor);
+    const bytes = read(cursor, atEof ? length : length + 4);
+    const taken = takePageMarks(bytes, page, atEof);
+    if (taken.consumed <= 0) {
+      if (atEof || span >= fileSize) {
+        break;
+      }
+      span = Math.max(span * 2, page + 4);
+      continue;
+    }
+    for (const end of taken.marks) {
+      marks.push(cursor + end);
+    }
+    cursor += taken.consumed;
+    span = baseSpan;
+  }
+  return marks;
+}
+
+function markBefore(marks, target, fallback) {
+  let low = 0;
+  let high = marks.length - 1;
+  let found = fallback;
+  while (low <= high) {
+    const mid = (low + high) >> 1;
+    if (marks[mid] < target) {
+      found = marks[mid];
+      low = mid + 1;
+    } else {
+      high = mid - 1;
+    }
+  }
+  return found;
+}
+
 function pageStartBefore(bytes, target, pageBytes) {
   let offset = 0;
   if (target <= 0) {
@@ -146,6 +207,9 @@ function toStatusText(chunk) {
 module.exports = {
   bomStart,
   fitUtf8Prefix,
+  takePageMarks,
+  extendPageMarks,
+  markBefore,
   pageStartBefore,
   snapUtf8Offset,
   movePage,

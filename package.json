@@ -2,7 +2,7 @@
   "name": "lazier-line",
   "displayName": "LazyReading",
   "description": "按固定字节数在状态栏翻页显示文本。默认 60 字节，上一页 Alt+1，隐藏或显示 Alt+2，下一页 Alt+3。",
-  "version": "0.2.3",
+  "version": "0.2.4",
   "publisher": "lazier",
   "engines": {
     "vscode": "^1.74.0"

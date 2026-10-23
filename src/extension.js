@@ -4,7 +4,7 @@ const crypto = require("crypto");
 const fs = require("fs");
 const path = require("path");
 const vscode = require("vscode");
-const { bomStart, fitUtf8Prefix, movePage, pageStartBefore, snapUtf8Offset, toStatusText } = require("./pageWindow");
+const { bomStart, extendPageMarks, fitUtf8Prefix, markBefore, movePage, snapUtf8Offset, toStatusText } = require("./pageWindow");
 const { findChapters, findLine, lineAtOffset } = require("./chapterScan");
 const { goToHtml, goToPlace } = require("./goToView");
 
@@ -267,33 +267,32 @@ function alignCurrent() {
   }
 }
 
+function ensurePageMarks(entry, page, target) {
+  if (entry.pageMarkPage !== page || entry.pageMarkSize !== entry.size || !entry.pageMarks) {
+    // 页起点只顺着文件增长补一次，上一页不必每次从文件头重读
+    entry.pageMarks = [entry.start];
+    entry.pageMarkPage = page;
+    entry.pageMarkSize = entry.size;
+  }
+  return extendPageMarks(
+    entry.pageMarks,
+    (offset, length) => readRaw(entry.absPath, offset, length),
+    entry.size,
+    page,
+    target
+  );
+}
+
+function pageMarkBefore(entry, page, target) {
+  return markBefore(ensurePageMarks(entry, page, target), target, entry.start);
+}
+
 function previousOffsetOf(entry, page) {
-  return pageStartOf(entry, pageOffset, page);
+  return pageMarkBefore(entry, page, pageOffset);
 }
 
 function lastOffsetOf(entry, page) {
-  return pageStartOf(entry, entry.size, page);
-}
-
-function pageStartOf(entry, target, page) {
-  if (target <= entry.start) {
-    return entry.start;
-  }
-  const span = target - entry.start;
-  if (span > 4 * 1024 * 1024) {
-    let offset = entry.start;
-    while (offset < target) {
-      const raw = readRaw(entry.absPath, offset, page + 3);
-      const size = fitUtf8Prefix(raw, page);
-      if (size <= 0 || offset + size >= target) {
-        return offset;
-      }
-      offset += size;
-    }
-    return entry.start;
-  }
-  const bytes = readRaw(entry.absPath, entry.start, span + 3);
-  return entry.start + pageStartBefore(bytes, span, page);
+  return pageMarkBefore(entry, page, entry.size);
 }
 
 function rememberPlace() {
@@ -403,7 +402,9 @@ function shiftPage(direction) {
     } else if (pageOffset > current.start) {
       previousOffset = previousOffsetOf(current, page);
     }
-    if (direction < 0) {
+    // 只有回到上一份文件，或从第一页绕回最后一页时，才需要扫到文件尾
+    const atFirstPage = pageOffset <= current.start;
+    if (direction < 0 && atFirstPage && (entryIndex > 0 || wrapEnabled())) {
       lastOffset = lastOffsetOf(neighbor, page);
     }
   } catch {
