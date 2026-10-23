@@ -11,6 +11,7 @@ const { goToHtml, goToPlace } = require("./goToView");
 const PLACE_STATE = "lazier.pageByPath";
 const DIRECTORY_STATE = "lazier.lastDirectory";
 const VISIBLE_STATE = "lazier.statusTextVisible";
+const VISIBLE_CONTEXT = "lazier.statusTextVisible";
 
 let extensionContext;
 let statusItem;
@@ -28,6 +29,7 @@ let goToPanel;
 function activate(context) {
   extensionContext = context;
   statusTextVisible = context.globalState.get(VISIBLE_STATE, true) !== false;
+  syncShortcutContext();
   statusItem = vscode.window.createStatusBarItem("lazier.page", vscode.StatusBarAlignment.Left, 100);
   context.subscriptions.push(
     statusItem,
@@ -380,7 +382,15 @@ function showStatusItem() {
   }
 }
 
+function syncShortcutContext() {
+  // 隐藏后快捷键的 when 依赖这个值，Alt+1 等不再被插件接住
+  void vscode.commands.executeCommand("setContext", VISIBLE_CONTEXT, statusTextVisible);
+}
+
 function shiftPage(direction) {
+  if (!statusTextVisible) {
+    return;
+  }
   if (!textEntries.length) {
     return selectFile();
   }
@@ -452,6 +462,9 @@ function goToOffset(offset) {
 }
 
 async function jumpToChapter() {
+  if (!statusTextVisible) {
+    return;
+  }
   const entry = textEntries[entryIndex];
   if (!entry) {
     return selectFile();
@@ -509,6 +522,9 @@ function readGoToPlace() {
 }
 
 function jumpToPosition() {
+  if (!statusTextVisible) {
+    return;
+  }
   const entry = textEntries[entryIndex];
   if (!entry) {
     return selectFile();
@@ -597,6 +613,10 @@ function applyGoTo(mode, raw) {
 function toggleStatusText() {
   statusTextVisible = !statusTextVisible;
   rememberVisible();
+  syncShortcutContext();
+  if (!statusTextVisible) {
+    goToPanel?.dispose();
+  }
   if (textEntries.length) {
     render();
   } else {
@@ -628,6 +648,9 @@ function rememberDirectory(filePath) {
 }
 
 async function selectFile() {
+  if (!statusTextVisible) {
+    return;
+  }
   rememberPlace();
   const picked = await vscode.window.showOpenDialog({
     canSelectFiles: true,
