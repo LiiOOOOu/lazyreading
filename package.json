@@ -1,8 +1,8 @@
 {
   "name": "lazier-line",
   "displayName": "LazyReading",
-  "description": "按固定字节数在状态栏翻页显示文本。默认 60 字节，上一页 Alt+1，隐藏或显示 Alt+2，下一页 Alt+3。",
-  "version": "0.2.4",
+  "description": "按固定字节数在状态栏翻页显示文本。默认 60 字节。Alt+1 下一页，Alt+2 上一页，Alt+3 选择文本，Alt+` 隐藏或显示。",
+  "version": "0.2.6",
   "publisher": "lazier",
   "engines": {
     "vscode": "^1.74.0"
@@ -55,15 +55,15 @@
     "keybindings": [
       {
         "command": "lazier.prevPage",
-        "key": "alt+1"
-      },
-      {
-        "command": "lazier.toggleStatusText",
         "key": "alt+2"
       },
       {
+        "command": "lazier.toggleStatusText",
+        "key": "alt+`"
+      },
+      {
         "command": "lazier.nextPage",
-        "key": "alt+3"
+        "key": "alt+1"
       },
       {
         "command": "lazier.jumpChapter",
@@ -75,7 +75,7 @@
       },
       {
         "command": "lazier.selectFile",
-        "key": "alt+`"
+        "key": "alt+3"
       }
     ],
     "configuration": {
