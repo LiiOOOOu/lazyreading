@@ -1,0 +1,104 @@
+{
+  "name": "lazier-line",
+  "displayName": "LazyReading",
+  "description": "按固定字节数在状态栏翻页显示文本。默认 60 字节，上一页 Alt+1，隐藏或显示 Alt+2，下一页 Alt+3。",
+  "version": "0.2.3",
+  "publisher": "lazier",
+  "engines": {
+    "vscode": "^1.74.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "activationEvents": [
+    "onStartupFinished"
+  ],
+  "main": "./src/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "lazier.prevPage",
+        "title": "%lazier.prevPage%",
+        "category": "%lazier.category%"
+      },
+      {
+        "command": "lazier.nextPage",
+        "title": "%lazier.nextPage%",
+        "category": "%lazier.category%"
+      },
+      {
+        "command": "lazier.toggleStatusText",
+        "title": "%lazier.toggleStatusText%",
+        "category": "%lazier.category%"
+      },
+      {
+        "command": "lazier.selectFile",
+        "title": "%lazier.selectFile%",
+        "category": "%lazier.category%"
+      },
+      {
+        "command": "lazier.reload",
+        "title": "%lazier.reload%",
+        "category": "%lazier.category%"
+      },
+      {
+        "command": "lazier.jumpChapter",
+        "title": "%lazier.jumpChapter%",
+        "category": "%lazier.category%"
+      },
+      {
+        "command": "lazier.jumpPosition",
+        "title": "%lazier.jumpPosition%",
+        "category": "%lazier.category%"
+      }
+    ],
+    "keybindings": [
+      {
+        "command": "lazier.prevPage",
+        "key": "alt+1"
+      },
+      {
+        "command": "lazier.toggleStatusText",
+        "key": "alt+2"
+      },
+      {
+        "command": "lazier.nextPage",
+        "key": "alt+3"
+      },
+      {
+        "command": "lazier.jumpChapter",
+        "key": "alt+4"
+      },
+      {
+        "command": "lazier.jumpPosition",
+        "key": "alt+5"
+      },
+      {
+        "command": "lazier.selectFile",
+        "key": "alt+`"
+      }
+    ],
+    "configuration": {
+      "title": "%lazier.category%",
+      "properties": {
+        "lazier.filePath": {
+          "type": "string",
+          "default": "",
+          "description": "要翻页阅读的 txt。相对路径相对于第一个工作区文件夹，也可以填绝对路径。每个打开过的文件会记住上次读到的位置。"
+        },
+        "lazier.pageBytes": {
+          "type": "number",
+          "default": 60,
+          "minimum": 1,
+          "maximum": 4096,
+          "description": "每页最多读取的字节数。按 UTF-8 字符边界收口，不会把一个汉字切成两页。"
+        },
+        "lazier.wrap": {
+          "type": "boolean",
+          "default": true,
+          "description": "这个文件的最后一页之后再下一页时，回到它的第一页。"
+        }
+      }
+    }
+  }
+}

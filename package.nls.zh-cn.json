@@ -1,0 +1,10 @@
+{
+  "lazier.category": "阅读设置",
+  "lazier.prevPage": "上一页",
+  "lazier.nextPage": "下一页",
+  "lazier.toggleStatusText": "隐藏或显示文本",
+  "lazier.selectFile": "选择文本",
+  "lazier.reload": "重新加载文本",
+  "lazier.jumpChapter": "跳转到章节",
+  "lazier.jumpPosition": "转至..."
+}
